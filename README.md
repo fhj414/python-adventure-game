@@ -323,21 +323,22 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 1. 在 Render 连接 GitHub 仓库。
 2. 可直接使用仓库根目录的 `render.yaml` 自动创建服务。
 3. 这个配置已经给后端服务附加了持久磁盘，SQLite 文件会写到 `/var/data/pyrunner.db`。
-4. 如果手动配置，Root Directory 选择 `backend`。
-5. 在服务里添加 Persistent Disk，挂载路径填 `/var/data`。
-4. Build Command：
+4. Python 版本固定为 `3.11.11`。如果你是手动创建 `Web Service`，请在 Render 服务里把 `PYTHON_VERSION` 设为 `3.11.11`，不要使用默认的 `3.14.x`。
+5. 如果手动配置，Root Directory 选择 `backend`。
+6. 在服务里添加 Persistent Disk，挂载路径填 `/var/data`。
+7. Build Command：
 
 ```bash
 pip install -r requirements.txt && python3 -m app.scripts.init_db
 ```
 
-5. Start Command：
+8. Start Command：
 
 ```bash
 python3 -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-6. 环境变量按 `.env.example` 配置，其中 `DATABASE_URL` 建议设为：
+9. 环境变量按 `.env.example` 配置，其中 `DATABASE_URL` 建议设为：
 
 ```env
 DATABASE_URL=sqlite:////var/data/pyrunner.db
