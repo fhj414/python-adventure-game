@@ -7,13 +7,17 @@ import httpx
 from app.config import settings
 
 
+def get_ai_api_key() -> str:
+    return settings.moonshot_api_key or settings.openai_api_key
+
+
 def _mock_response(action: str, level_title: str, user_code: str = "", error: str = "") -> dict:
     base = {
         "action": action,
         "source": "mock",
         "data": {
             "title": level_title,
-            "message": f"这是 PyRunner 的本地 AI 演示响应，当前未配置 API Key，也能完整跑通 MVP。",
+            "message": "当前未配置模型接口，已自动切换到本地演示逻辑。",
             "tips": [
                 "先看题目要求中的动词，比如输出、定义、返回。",
                 "把大题拆成 2 到 3 个小步骤先写出来。",
@@ -40,10 +44,11 @@ def _mock_response(action: str, level_title: str, user_code: str = "", error: st
 
 
 async def call_ai(action: str, level_title: str, prompt: str, user_code: str = "", error: str = "") -> dict:
-    if not settings.openai_api_key:
+    api_key = get_ai_api_key()
+    if not api_key:
         return _mock_response(action, level_title, user_code, error)
 
-    headers = {"Authorization": f"Bearer {settings.openai_api_key}"}
+    headers = {"Authorization": f"Bearer {api_key}"}
     payload = {
         "model": settings.openai_model,
         "messages": [
@@ -63,4 +68,4 @@ async def call_ai(action: str, level_title: str, prompt: str, user_code: str = "
         response = await client.post(f"{settings.openai_base_url}/chat/completions", headers=headers, json=payload)
         response.raise_for_status()
         content = response.json()["choices"][0]["message"]["content"]
-        return {"action": action, "source": "openai", "data": json.loads(content)}
+        return {"action": action, "source": "compatible-api", "data": json.loads(content)}

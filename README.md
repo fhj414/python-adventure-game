@@ -1,15 +1,15 @@
 # PyRunner
 
-PyRunner 是一个移动端优先、轻游戏化的 Python 学习小游戏 MVP。它面向零基础用户，也兼顾有编程经验的用户，核心围绕 Python 基础知识闯关，并内置 AI 提示、AI 讲解、相似题生成和错题复盘能力。
+PyRunner 是一个移动端优先的 Python 闯关学习项目，适合零基础入门，也适合拿来做碎片化复习。项目围绕 Python 基础知识设计关卡，并提供提示、讲解、相似题和错题复盘能力。
 
-今天可上线的 MVP 已包含：
+当前仓库已经包含一套可以直接运行和部署的版本：
 
 - Next.js + TypeScript + Tailwind CSS 前端
 - FastAPI + SQLite 后端
 - 前后端分离
 - 30 个首批关卡
 - 受限 Python 沙盒执行
-- AI 服务封装和本地 mock 降级
+- 兼容 OpenAI 协议的模型接入封装，默认按月之暗面配置
 - 错题本、关卡地图、个人中心、AI 教练
 - 一键初始化脚本和测试数据
 - Render / Railway 部署配置文件
@@ -171,11 +171,11 @@ SQLite 表：
   - `icon`
   - `unlock_rule`
 
-初始化脚本位于 `backend/app/scripts/init_db.py`，会自动创建表、灌入 30 个关卡、徽章和测试用户数据。
+初始化脚本位于 `backend/app/scripts/init_db.py`，会自动创建表、写入 30 个关卡、徽章和测试用户数据。
 
-## AI 接口设计
+## 模型接口
 
-后端统一封装在 `backend/app/services/ai_service.py`。
+后端统一封装在 `backend/app/services/ai_service.py`，使用 OpenAI 兼容协议，默认配置为月之暗面接口。
 
 支持方法：
 
@@ -198,7 +198,17 @@ SQLite 表：
 }
 ```
 
-如果未配置 `OPENAI_API_KEY`，系统会自动降级为本地 mock 响应，保证演示可运行。
+优先读取：
+
+- `MOONSHOT_API_KEY`
+- 如果未设置，再回退到 `OPENAI_API_KEY`
+
+默认配置：
+
+- `OPENAI_BASE_URL=https://api.moonshot.cn/v1`
+- `OPENAI_MODEL=moonshot-v1-8k`
+
+如果没有配置密钥，系统会自动降级为本地 mock 响应，页面和接口仍然可以完整演示。
 
 ## Python 沙盒限制
 
@@ -212,7 +222,7 @@ MVP 沙盒位于 `backend/app/services/sandbox.py`，主要限制：
 - 限制输出长度
 - 通过 AST 做基础静态检查
 
-说明：这是上线前可演示的轻量安全方案，适合 MVP。若进入生产高并发环境，建议换成独立容器沙盒或 Firecracker / gVisor 类隔离执行方案。
+说明：这是当前版本使用的轻量安全方案，适合先上线验证。后续如果要承接更高并发或开放自由输入，建议换成独立容器沙盒或 Firecracker / gVisor 一类的隔离方案。
 
 ## 本地启动
 
@@ -266,9 +276,10 @@ APP_ENV=development
 API_PREFIX=/api
 DATABASE_URL=sqlite:///./pyrunner.db
 CORS_ORIGINS=http://localhost:3000
+MOONSHOT_API_KEY=
 OPENAI_API_KEY=
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_BASE_URL=https://api.moonshot.cn/v1
+OPENAI_MODEL=moonshot-v1-8k
 SANDBOX_TIMEOUT_SECONDS=2
 SANDBOX_OUTPUT_LIMIT=1200
 ```
@@ -327,7 +338,7 @@ python3 -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
 6. 环境变量按 `.env.example` 配置。
 7. 首次启动会自动生成 SQLite 文件。
 
-注意：Render 的免费实例磁盘不是长期持久化的，正式上线建议切换到带持久磁盘的方案，或者迁移到 Postgres。
+注意：Render 免费实例的磁盘不是长期持久化的。如果要长期保留用户进度，建议挂持久磁盘，或者把数据库迁移到 Postgres。
 
 ### 后端部署到 Railway
 
@@ -349,18 +360,16 @@ python3 -m app.scripts.init_db
 
 6. 配置环境变量后发布。
 
-同样建议生产环境为数据库挂持久卷。
+同样建议为数据库挂持久卷，避免 SQLite 文件丢失。
 
-## 上线建议
-
-今天直接上线建议顺序：
+## 推荐部署顺序
 
 1. 先部署后端到 Render 或 Railway
 2. 拿到后端域名后配置前端 `NEXT_PUBLIC_API_BASE_URL`
 3. 前端部署到 Vercel
 4. 用手机浏览器实际走一遍首页、地图、闯关、AI 教练和错题本
 
-## MVP 之后优先扩展项
+## 后续可以继续补的内容
 
 - 真实登录与多用户
 - 题目输入参数化判题
@@ -372,6 +381,6 @@ python3 -m app.scripts.init_db
 
 ## 备注
 
-- 当前仓库是完整 MVP，不是零散 demo 片段。
-- 未配置 OpenAI Key 也能完整跑通演示。
+- 当前仓库是完整项目骨架，不是零散 demo 片段。
+- 未配置月之暗面或其他兼容接口密钥时，也能完整跑通演示。
 - 已提供测试数据，便于今天直接上线验证。

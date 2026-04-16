@@ -23,7 +23,7 @@ export function HomeClient({ data }: { data: BootstrapData }) {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-[32px] border border-cyan-300/20 bg-gradient-to-br from-cyan-400/15 via-sky-400/10 to-emerald-400/10 p-5">
           <p className="text-sm text-cyan-100/80">PyRunner</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight">把 Python 学成一场轻冒险</h1>
-          <p className="mt-3 text-sm leading-6 text-white/70">适合零基础和有经验用户的移动端闯关学习。今天就能上线，今天就能开刷。</p>
+          <p className="mt-3 text-sm leading-6 text-white/70">适合零基础入门，也适合用来做碎片化复习的移动端 Python 闯关学习项目。</p>
         </motion.div>
       </section>
 
