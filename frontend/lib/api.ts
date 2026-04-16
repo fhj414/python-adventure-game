@@ -2,6 +2,14 @@ import { AIResult, BootstrapData, LevelDetail, ProfileData, RunResult, WrongReco
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
+export function getApiBase() {
+  return API_BASE;
+}
+
+export function hasConfiguredApiBase() {
+  return Boolean(process.env.NEXT_PUBLIC_API_BASE_URL);
+}
+
 async function fetcher<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
