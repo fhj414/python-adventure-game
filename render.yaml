@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: pyrunner-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python3 -m app.scripts.init_db
+    startCommand: python3 -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: API_PREFIX
+        value: /api
+      - key: DATABASE_URL
+        value: sqlite:///./pyrunner.db
+      - key: SANDBOX_TIMEOUT_SECONDS
+        value: "2"
+      - key: SANDBOX_OUTPUT_LIMIT
+        value: "1200"
