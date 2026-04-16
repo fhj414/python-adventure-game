@@ -76,10 +76,10 @@ PyRunner/
 - 关卡标题和知识点
 - 题目描述
 - 代码编辑区
-- 运行按钮 / 重置按钮 / 提示按钮 / AI 讲解按钮
+- 运行、重置、提示和 AI 讲解操作
 - 输出区
 - 测试用例状态
-- 通关动画和得分展示
+- 通关反馈和得分展示
 
 ### 4. AI 教练页
 
@@ -189,7 +189,7 @@ SQLite 表：
 ```json
 {
   "action": "hint",
-  "source": "mock",
+  "source": "compatible-api",
   "data": {
     "title": "关卡标题",
     "message": "返回内容",
@@ -205,10 +205,10 @@ SQLite 表：
 
 默认配置：
 
-- `OPENAI_BASE_URL=https://api.moonshot.cn/v1`
-- `OPENAI_MODEL=moonshot-v1-8k`
+- `OPENAI_BASE_URL=https://api.moonshot.ai/v1`
+- `OPENAI_MODEL=kimi-k2-turbo-preview`
 
-如果没有配置密钥，系统会自动降级为本地 mock 响应，页面和接口仍然可以完整演示。
+如果没有配置密钥，系统会自动使用本地兜底逻辑，页面和接口仍然可以正常使用。
 
 ## Python 沙盒限制
 
@@ -278,8 +278,8 @@ DATABASE_URL=sqlite:///./pyrunner.db
 CORS_ORIGINS=http://localhost:3000
 MOONSHOT_API_KEY=
 OPENAI_API_KEY=
-OPENAI_BASE_URL=https://api.moonshot.cn/v1
-OPENAI_MODEL=moonshot-v1-8k
+OPENAI_BASE_URL=https://api.moonshot.ai/v1
+OPENAI_MODEL=kimi-k2-turbo-preview
 SANDBOX_TIMEOUT_SECONDS=2
 SANDBOX_OUTPUT_LIMIT=1200
 ```
@@ -382,5 +382,5 @@ python3 -m app.scripts.init_db
 ## 备注
 
 - 当前仓库是完整项目骨架，不是零散 demo 片段。
-- 未配置月之暗面或其他兼容接口密钥时，也能完整跑通演示。
+- 未配置月之暗面或其他兼容接口密钥时，项目会自动回退到本地兜底逻辑。
 - 已提供测试数据，便于今天直接上线验证。

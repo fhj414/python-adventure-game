@@ -7,6 +7,7 @@ import { useState } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { GlassCard, PrimaryButton, SecondaryButton, Shell } from "@/components/ui";
 import { api } from "@/lib/api";
+import { playUiSound } from "@/lib/sfx";
 import { LevelDetail, RunResult } from "@/lib/types";
 
 export function LevelPlayClient({ level }: { level: LevelDetail }) {
@@ -16,9 +17,13 @@ export function LevelPlayClient({ level }: { level: LevelDetail }) {
   const [loading, setLoading] = useState(false);
   const [usedHint, setUsedHint] = useState(false);
   const [aiText, setAiText] = useState("点一下提示或 AI 讲解，旁边就会出现结果。");
+  const [soundOn, setSoundOn] = useState(true);
 
   async function runCode() {
     setLoading(true);
+    if (soundOn) {
+      playUiSound("run");
+    }
     const response = (await api.runCode({
       user_id: 1,
       level_id: level.id,
@@ -27,16 +32,25 @@ export function LevelPlayClient({ level }: { level: LevelDetail }) {
       used_hint: usedHint,
     })) as RunResult;
     setResult(response);
+    if (soundOn) {
+      playUiSound(response.success ? "success" : "error");
+    }
     setLoading(false);
   }
 
   async function fetchHint() {
     setUsedHint(true);
+    if (soundOn) {
+      playUiSound("hint");
+    }
     const response = await api.aiHint({ level_id: level.id, user_code: code });
     setAiText(response.data.message ?? JSON.stringify(response.data, null, 2));
   }
 
   async function fetchExplain() {
+    if (soundOn) {
+      playUiSound("tap");
+    }
     const response = await api.aiExplain({ level_id: level.id, user_code: code, error: result?.message ?? "" });
     setAiText(response.data.message ?? JSON.stringify(response.data, null, 2));
   }
@@ -54,6 +68,7 @@ export function LevelPlayClient({ level }: { level: LevelDetail }) {
         <div className="mt-4 flex gap-2">
           <button onClick={() => setMode("beginner")} className={`rounded-full px-3 py-2 text-xs ${mode === "beginner" ? "bg-accent text-slate-950" : "bg-white/5 text-white/70"}`}>新手模板</button>
           <button onClick={() => setMode("pro")} className={`rounded-full px-3 py-2 text-xs ${mode === "pro" ? "bg-accent2 text-slate-950" : "bg-white/5 text-white/70"}`}>高级直写</button>
+          <button onClick={() => setSoundOn((value) => !value)} className={`rounded-full px-3 py-2 text-xs ${soundOn ? "bg-warning text-slate-950" : "bg-white/5 text-white/70"}`}>{soundOn ? "音效开" : "音效关"}</button>
         </div>
       </GlassCard>
 
@@ -66,17 +81,17 @@ export function LevelPlayClient({ level }: { level: LevelDetail }) {
         </div>
         <textarea value={code} onChange={(event) => setCode(event.target.value)} className="min-h-64 w-full rounded-3xl border border-white/10 bg-slate-950/70 p-4 font-mono text-sm leading-6 outline-none" />
         <div className="mt-4 grid grid-cols-2 gap-3">
-          <button onClick={runCode} className="rounded-2xl bg-gradient-to-r from-accent to-accent2 px-4 py-3 text-sm font-semibold text-slate-950">{loading ? "运行中..." : "运行按钮"}</button>
-          <button onClick={() => setCode(level.starterCode)} className="rounded-2xl bg-white/5 px-4 py-3 text-sm">重置按钮</button>
-          <button onClick={fetchHint} className="rounded-2xl bg-white/5 px-4 py-3 text-sm">提示按钮</button>
-          <button onClick={fetchExplain} className="rounded-2xl bg-white/5 px-4 py-3 text-sm">AI 讲解按钮</button>
+          <button onClick={runCode} className="rounded-2xl bg-gradient-to-r from-accent to-accent2 px-4 py-3 text-sm font-semibold text-slate-950">{loading ? "运行中..." : "运行代码"}</button>
+          <button onClick={() => setCode(level.starterCode)} className="rounded-2xl bg-white/5 px-4 py-3 text-sm">重置代码</button>
+          <button onClick={fetchHint} className="rounded-2xl bg-white/5 px-4 py-3 text-sm">查看提示</button>
+          <button onClick={fetchExplain} className="rounded-2xl bg-white/5 px-4 py-3 text-sm">AI 讲解</button>
         </div>
       </GlassCard>
 
       <GlassCard className="mt-4">
         <div className="flex items-center gap-2">
           <Wand2 size={16} className="text-accent" />
-          <h2 className="font-semibold">AI 脑回路</h2>
+          <h2 className="font-semibold">AI 教练</h2>
         </div>
         <p className="mt-3 rounded-2xl bg-slate-950/70 p-4 text-sm leading-6 text-white/80">{aiText}</p>
       </GlassCard>
@@ -104,7 +119,7 @@ export function LevelPlayClient({ level }: { level: LevelDetail }) {
           <GlassCard className="border-accent/30 bg-gradient-to-br from-accent/20 to-accent2/10">
             <div className="flex items-center gap-2">
               <Sparkles className="text-warning" size={18} />
-              <h2 className="font-bold">通关动画和得分展示</h2>
+              <h2 className="font-bold">通关奖励</h2>
             </div>
             <p className="mt-3 text-sm text-white/85">{result.message}</p>
             <p className="mt-2 text-sm text-white/70">得分 {result.score} · 星级 {result.stars} · 奖励 {level.coinReward} 金币 / {level.xpReward} 经验</p>

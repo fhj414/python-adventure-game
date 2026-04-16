@@ -14,10 +14,10 @@ def get_ai_api_key() -> str:
 def _mock_response(action: str, level_title: str, user_code: str = "", error: str = "") -> dict:
     base = {
         "action": action,
-        "source": "mock",
+        "source": "fallback",
         "data": {
             "title": level_title,
-            "message": "当前未配置模型接口，已自动切换到本地演示逻辑。",
+            "message": "先从题目的输入、输出和关键条件下手，先写出最小可运行版本。",
             "tips": [
                 "先看题目要求中的动词，比如输出、定义、返回。",
                 "把大题拆成 2 到 3 个小步骤先写出来。",

@@ -11,10 +11,28 @@ type AIState = {
   result: string;
 };
 
+function formatResult(data: {
+  title?: string;
+  message?: string;
+  tips?: string[];
+  questions?: { title: string; description: string }[];
+}) {
+  const chunks = [
+    data.title ? `# ${data.title}` : "",
+    data.message ?? "",
+    data.tips?.length ? `建议：\n${data.tips.map((tip) => `- ${tip}`).join("\n")}` : "",
+    data.questions?.length
+      ? `类似题：\n${data.questions.map((item) => `- ${item.title}：${item.description}`).join("\n")}`
+      : "",
+  ].filter(Boolean);
+
+  return chunks.join("\n\n");
+}
+
 export function CoachClient() {
   const [levelId, setLevelId] = useState("level-05");
   const [userCode, setUserCode] = useState("temp = 31\nprint('Hot')");
-  const [result, setResult] = useState<AIState>({ loading: false, result: "在这里向 AI 教练提问，支持未配置 API Key 的 mock 演示。" });
+  const [result, setResult] = useState<AIState>({ loading: false, result: "把题目、代码或报错贴进来，教练会按当前关卡给你提示、讲解或类似题。" });
 
   async function runAction(action: "hint" | "explain" | "locate" | "similar") {
     setResult({ loading: true, result: "AI 教练思考中..." });
@@ -27,7 +45,7 @@ export function CoachClient() {
           : action === "locate"
             ? await api.aiLocateError(body)
             : await api.aiSimilar(body);
-    setResult({ loading: false, result: JSON.stringify(response.data, null, 2) });
+    setResult({ loading: false, result: formatResult(response.data) });
   }
 
   return (
