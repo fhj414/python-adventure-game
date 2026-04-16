@@ -274,7 +274,7 @@ npm run dev
 APP_NAME=PyRunner API
 APP_ENV=development
 API_PREFIX=/api
-DATABASE_URL=sqlite:///./pyrunner.db
+DATABASE_URL=sqlite:///./data/pyrunner.db
 CORS_ORIGINS=http://localhost:3000
 MOONSHOT_API_KEY=
 OPENAI_API_KEY=
@@ -322,7 +322,9 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 
 1. 在 Render 连接 GitHub 仓库。
 2. 可直接使用仓库根目录的 `render.yaml` 自动创建服务。
-3. 如果手动配置，Root Directory 选择 `backend`。
+3. 这个配置已经给后端服务附加了持久磁盘，SQLite 文件会写到 `/var/data/pyrunner.db`。
+4. 如果手动配置，Root Directory 选择 `backend`。
+5. 在服务里添加 Persistent Disk，挂载路径填 `/var/data`。
 4. Build Command：
 
 ```bash
@@ -335,32 +337,52 @@ pip install -r requirements.txt && python3 -m app.scripts.init_db
 python3 -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-6. 环境变量按 `.env.example` 配置。
-7. 首次启动会自动生成 SQLite 文件。
+6. 环境变量按 `.env.example` 配置，其中 `DATABASE_URL` 建议设为：
 
-注意：Render 免费实例的磁盘不是长期持久化的。如果要长期保留用户进度，建议挂持久磁盘，或者把数据库迁移到 Postgres。
+```env
+DATABASE_URL=sqlite:////var/data/pyrunner.db
+```
+
+7. 首次启动会自动创建数据库目录和 SQLite 文件。
+
+注意：
+
+- Render 默认文件系统是临时的，不挂磁盘的话，重启或重新部署后 SQLite 会丢。
+- Render 的持久磁盘只能挂在单实例服务上，不适合后面横向扩容。
+- 如果你后续要做多实例或多人并发，还是建议迁移到 Postgres。
 
 ### 后端部署到 Railway
 
 1. 在 Railway 新建项目并连接仓库。
 2. Root Directory 选择 `backend`。
 3. 仓库已提供 `backend/nixpacks.toml` 与 `backend/Procfile`，可直接识别启动配置。
-4. 如果手动配置 Start Command：
+4. 给后端服务挂一个 Volume，挂载到 `/app/data`。
+5. 将 `DATABASE_URL` 设置为：
+
+```env
+DATABASE_URL=sqlite:///./data/pyrunner.db
+```
+
+6. 如果手动配置 Start Command：
 
 ```bash
 python3 -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-5. 在 Deploy 或 Pre-deploy 阶段执行：
+7. 在 Deploy 或 Pre-deploy 阶段执行：
 
 ```bash
 pip install -r requirements.txt
 python3 -m app.scripts.init_db
 ```
 
-6. 配置环境变量后发布。
+8. 配置环境变量后发布。
 
-同样建议为数据库挂持久卷，避免 SQLite 文件丢失。
+注意：
+
+- Railway 的 Volume 只在运行时挂载，所以数据库文件必须写到挂载路径内。
+- 当前项目写 `./data/pyrunner.db`，在 Railway 上把卷挂到 `/app/data` 就能持久化。
+- 和 Render 一样，SQLite 更适合单实例应用。
 
 ## 推荐部署顺序
 

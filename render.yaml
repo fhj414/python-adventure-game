@@ -12,8 +12,12 @@ services:
       - key: API_PREFIX
         value: /api
       - key: DATABASE_URL
-        value: sqlite:///./pyrunner.db
+        value: sqlite:////var/data/pyrunner.db
       - key: SANDBOX_TIMEOUT_SECONDS
         value: "2"
       - key: SANDBOX_OUTPUT_LIMIT
         value: "1200"
+    disk:
+      name: pyrunner-data
+      mountPath: /var/data
+      sizeGB: 5

@@ -7,7 +7,7 @@ import { useState } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { GlassCard, PrimaryButton, SecondaryButton, Shell } from "@/components/ui";
 import { api } from "@/lib/api";
-import { playUiSound } from "@/lib/sfx";
+import { playUiSound, primeAudio } from "@/lib/sfx";
 import { LevelDetail, RunResult } from "@/lib/types";
 
 export function LevelPlayClient({ level }: { level: LevelDetail }) {
@@ -22,7 +22,8 @@ export function LevelPlayClient({ level }: { level: LevelDetail }) {
   async function runCode() {
     setLoading(true);
     if (soundOn) {
-      playUiSound("run");
+      await primeAudio();
+      await playUiSound("run");
     }
     const response = (await api.runCode({
       user_id: 1,
@@ -33,7 +34,7 @@ export function LevelPlayClient({ level }: { level: LevelDetail }) {
     })) as RunResult;
     setResult(response);
     if (soundOn) {
-      playUiSound(response.success ? "success" : "error");
+      await playUiSound(response.success ? "success" : "error");
     }
     setLoading(false);
   }
@@ -41,7 +42,8 @@ export function LevelPlayClient({ level }: { level: LevelDetail }) {
   async function fetchHint() {
     setUsedHint(true);
     if (soundOn) {
-      playUiSound("hint");
+      await primeAudio();
+      await playUiSound("hint");
     }
     const response = await api.aiHint({ level_id: level.id, user_code: code });
     setAiText(response.data.message ?? JSON.stringify(response.data, null, 2));
@@ -49,10 +51,23 @@ export function LevelPlayClient({ level }: { level: LevelDetail }) {
 
   async function fetchExplain() {
     if (soundOn) {
-      playUiSound("tap");
+      await primeAudio();
+      await playUiSound("tap");
     }
     const response = await api.aiExplain({ level_id: level.id, user_code: code, error: result?.message ?? "" });
     setAiText(response.data.message ?? JSON.stringify(response.data, null, 2));
+  }
+
+  async function toggleSound() {
+    if (!soundOn) {
+      const unlocked = await primeAudio();
+      setSoundOn(true);
+      if (unlocked) {
+        await playUiSound("tap");
+      }
+      return;
+    }
+    setSoundOn(false);
   }
 
   return (
@@ -68,7 +83,7 @@ export function LevelPlayClient({ level }: { level: LevelDetail }) {
         <div className="mt-4 flex gap-2">
           <button onClick={() => setMode("beginner")} className={`rounded-full px-3 py-2 text-xs ${mode === "beginner" ? "bg-accent text-slate-950" : "bg-white/5 text-white/70"}`}>新手模板</button>
           <button onClick={() => setMode("pro")} className={`rounded-full px-3 py-2 text-xs ${mode === "pro" ? "bg-accent2 text-slate-950" : "bg-white/5 text-white/70"}`}>高级直写</button>
-          <button onClick={() => setSoundOn((value) => !value)} className={`rounded-full px-3 py-2 text-xs ${soundOn ? "bg-warning text-slate-950" : "bg-white/5 text-white/70"}`}>{soundOn ? "音效开" : "音效关"}</button>
+          <button onClick={toggleSound} className={`rounded-full px-3 py-2 text-xs ${soundOn ? "bg-warning text-slate-950" : "bg-white/5 text-white/70"}`}>{soundOn ? "音效开" : "音效关"}</button>
         </div>
       </GlassCard>
 

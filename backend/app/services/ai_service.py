@@ -64,8 +64,11 @@ async def call_ai(action: str, level_title: str, prompt: str, user_code: str = "
         ],
         "response_format": {"type": "json_object"},
     }
-    async with httpx.AsyncClient(timeout=20) as client:
-        response = await client.post(f"{settings.openai_base_url}/chat/completions", headers=headers, json=payload)
-        response.raise_for_status()
-        content = response.json()["choices"][0]["message"]["content"]
-        return {"action": action, "source": "compatible-api", "data": json.loads(content)}
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            response = await client.post(f"{settings.openai_base_url}/chat/completions", headers=headers, json=payload)
+            response.raise_for_status()
+            content = response.json()["choices"][0]["message"]["content"]
+            return {"action": action, "source": "compatible-api", "data": json.loads(content)}
+    except (httpx.HTTPError, KeyError, json.JSONDecodeError):
+        return _mock_response(action, level_title, user_code, error)

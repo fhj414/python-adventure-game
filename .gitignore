@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 backend/pyrunner.db
+backend/data/
 backend/.venv/
 backend/.env
 frontend/.next/
